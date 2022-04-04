@@ -1,5 +1,5 @@
 CC=gcc
 CFLAGS=-I.
 
-wzip: main.o
-	$(CC) -o wzip main.o
+wzip: wzip.o
+	$(CC) -o wzip wzip.o
