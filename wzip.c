@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include<string.h>
 
 int main(int argc, char *argv[])
 {
-    // no files error 
+    // no files error
+    char no_files_error_msg[30] = "wzip: file1 [file2 ...]\n";
     if(argc < 2)
     {
-        printf("wzip: file1 [file2 ...]\n");
+        printf("%s",no_files_error_msg);
         exit(1);
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     }
     fclose(combinedFile);
     
-    // convert characters from the combined file to binary
+    // compress characters from the combined file
     char currentChar;
     int cur = 1;
     FILE *fp = fopen("combined.txt", "r");
