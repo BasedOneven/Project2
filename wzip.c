@@ -5,12 +5,17 @@
 int main(int argc, char *argv[])
 {
     // no files error 
-    
+    if(argc < 2)
+    {
+        printf("wzip: file1 [file2 ...]\n");
+        exit(1);
+    }
+
     // combine all input files into a single file
     // create new file for combination of inputs 
     FILE *combinedFile = fopen("combined.txt", "w");
 
-    // grab all files from the command line and put them in the file
+    // grab all files from the command line and put them in the combined file
     for(int i = 1; i < argc; i++) {
         char currentChar;
         FILE *fp = fopen(argv[i], "r");
