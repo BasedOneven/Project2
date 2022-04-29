@@ -1,5 +1,17 @@
-CC=gcc
-CFLAGS=-I.
+CC = gcc
+CFLAGS = -Wall -I. -O -Werror
+SFLAGS = -pthread
+OBJS = wzip.o queue.o
 
-wzip: wzip.o
-	$(CC) -o wzip wzip.o -Wall -Werror
+.SUFFIXES: .c .o 
+
+all: wzip
+
+wzip: wzip.o queue.o
+	$(CC) $(CFLAGS) $(SFLAGS) -o wzip wzip.o queue.o
+
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+clean:
+	-rm -f $(OBJS) wzip
