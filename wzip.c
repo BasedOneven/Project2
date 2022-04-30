@@ -10,6 +10,11 @@ queue_t jobs;
 pthread_cond_t fill = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t m   = PTHREAD_MUTEX_INITIALIZER;
 
+typedef struct __arg {
+    char * addr;
+    off_t offset;
+} arg_t;
+
 void *worker(void *arg);
 int thread_pool_init(int n);
 
@@ -62,8 +67,32 @@ int main(int argc, char *argv[])
     // file to compress greate thatn 4096 bytes
     if (size > 4096) 
     {
-        // create threads
-        thread_pool_init(3);
+        pthread_t t[2];
+        char *addr0 = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
+        char *addr1 = (void*)((char*)addr0 + 80);
+        char *addr2 = (void*)((char*)addr1 + 150);
+
+        arg_t *argAddr0 = malloc(sizeof(arg_t));
+        argAddr0->addr = addr0;
+        argAddr0->offset = size;
+
+        arg_t *argAddr1 = malloc(sizeof(arg_t));
+        argAddr1->addr = addr1;
+        argAddr1->offset = size;
+
+        arg_t *argAddr2 = malloc(sizeof(arg_t));
+        argAddr2->addr = addr2;
+        argAddr2->offset = size;
+
+        pthread_create(&t[0], NULL, worker, (void*) &argAddr0);
+        pthread_create(&t[1], NULL, worker, (void*) &argAddr1);
+        pthread_create(&t[2], NULL, worker, (void*) &argAddr2);
+
+        pthread_join(t[0], NULL);
+        pthread_join(t[1], NULL);
+        pthread_join(t[2], NULL);
+        
+        munmap(addr0, size);
     }
     else
     {
@@ -89,21 +118,29 @@ int main(int argc, char *argv[])
 }
 
 void *worker(void *arg) {
-  while (1) {	
-    pthread_mutex_lock(&m);
-    while (Queue_Empty(&jobs))// if empty, no job to do
-	{
-		pthread_cond_wait(&fill, &m); // wait for jobs
-	}
+    arg_t * argInfo = (arg_t *) arg;
+    char * memInfo = argInfo->addr;
+    int cur = 1;
+    char tempChar = memInfo[0];
+    char currentChar;
 
-    int fd;
-    Queue_Dequeue(&jobs, &fd);
-    pthread_mutex_unlock(&m);
+    for(int i = 0; i < argInfo->offset; i++)
+    {
+        currentChar = memInfo[i];
+        if(tempChar == currentChar)
+        {
+            cur++;
+        }
+        else
+        {
+            fwrite(&cur, 4, 1, stdout);
+            fwrite(&tempChar, 1, 1, stdout);
+            tempChar = currentChar;
+            cur = 1;
+        }
+    }
 
-    // request_handle(fd);
-    // close_or_die(fd);
-  }
-  return NULL;
+    return NULL;
 }
 
 int thread_pool_init(int n) {
