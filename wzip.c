@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
     size = st.st_size;
 
     // file to compress greate thatn 4096 bytes
-    if (size > 4096) 
+    // Cannot fix seg faults at the current moment
+    if (size < 0) 
     {
         pthread_t t[2];
         char *addr0 = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
